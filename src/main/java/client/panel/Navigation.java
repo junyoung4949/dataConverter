@@ -1,6 +1,7 @@
 package client.panel;
 
-import util.JPanelAdvisor;
+import util.Context;
+import util.ComponentManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,10 +13,10 @@ public class Navigation extends JPanel {
     private JButton excelGenBtn;
     private JButton apiInfoDeleteModifyBtn;
 
-    private final JPanelAdvisor panelAdvisor;
+    private final ComponentManager componentManager;
 
-    public Navigation(JPanelAdvisor panelAdvisor) {
-        this.panelAdvisor = panelAdvisor;
+    public Navigation(Context context) {
+        this.componentManager = context.componentManager();
 
         setting();
         setButton();
@@ -42,9 +43,9 @@ public class Navigation extends JPanel {
     }
 
     private void setEvent() {
-        excelRegiBtn.addActionListener((e -> panelAdvisor.getAll().forEach((key, panel) -> panel.setVisible(key.equals("excelRegister")))));
-        apiInfoRegiBtn.addActionListener((e -> panelAdvisor.getAll().forEach((key, panel) -> panel.setVisible(key.equals("apiInfoRegister")))));
-        excelGenBtn.addActionListener((e -> panelAdvisor.getAll().forEach((key, panel) -> panel.setVisible(key.equals("excelGen")))));
-        apiInfoDeleteModifyBtn.addActionListener((e -> panelAdvisor.getAll().forEach((key, panel) -> panel.setVisible(key.equals("apiInfoDeleteModify")))));
+        excelRegiBtn.addActionListener((e -> componentManager.getAll().forEach((key, panel) -> panel.setVisible(key.equals("excelRegister")))));
+        apiInfoRegiBtn.addActionListener((e -> componentManager.getAll().forEach((key, panel) -> panel.setVisible(key.equals("apiInfoRegister")))));
+        excelGenBtn.addActionListener((e -> componentManager.getAll().forEach((key, panel) -> panel.setVisible(key.equals("excelGen")))));
+        apiInfoDeleteModifyBtn.addActionListener((e -> componentManager.getAll().forEach((key, panel) -> panel.setVisible(key.equals("apiInfoDeleteModify")))));
     }
 }

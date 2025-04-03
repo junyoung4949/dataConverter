@@ -1,2 +1,5 @@
-package util;public interface Reloadable {
+package util;
+
+public interface Reloadable {
+    void reload();
 }

@@ -1,19 +1,17 @@
 package client;
 
 import util.Context;
-import util.JPanelAdvisor;
+import util.ComponentManager;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class MainGui extends JFrame {
 
-    private final Context context;
-    private final JPanelAdvisor panelAdvisor;
+    private final ComponentManager componentManager;
 
-    public MainGui(Context context, JPanelAdvisor panelAdvisor) {
-        this.context = context;
-        this.panelAdvisor = panelAdvisor;
+    public MainGui(Context context) {
+        this.componentManager = context.componentManager();
 
         this.setting();
         this.setComponent();
@@ -30,9 +28,9 @@ public class MainGui extends JFrame {
     }
 
     private void setComponent() {
-        this.add(panelAdvisor.getNavigation(), BorderLayout.NORTH);
+        this.add(componentManager.getNavigation(), BorderLayout.NORTH);
         JPanel cardPanel = new JPanel(new CardLayout());
-        panelAdvisor.getAll().values().forEach(panel -> {
+        componentManager.getAll().values().forEach(panel -> {
             cardPanel.add(panel, BorderLayout.CENTER);
         });
         add(cardPanel, BorderLayout.CENTER);

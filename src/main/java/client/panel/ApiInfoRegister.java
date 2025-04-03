@@ -4,7 +4,7 @@ import dto.ApiInfoDto;
 import entity.ApiInfo;
 import repository.ApiInfoRepository;
 import util.Context;
-import util.JPanelAdvisor;
+import util.Reloader;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,11 +17,13 @@ public class ApiInfoRegister extends JPanel {
     private JButton submitButton;
 
     private final ApiInfoRepository apiInfoRepository;
-    private final JPanelAdvisor panelAdvisor;
+    private final Reloader reloader;
 
-    public ApiInfoRegister(Context context, JPanelAdvisor panelAdvisor) {
-        this.panelAdvisor = panelAdvisor;
+
+    public ApiInfoRegister(Context context) {
         this.apiInfoRepository = context.apiInfoRepository();
+        this.reloader = context.reloader();
+
         GridBagConstraints gbc = setting();
 
         // 입력 필드 추가
@@ -96,11 +98,10 @@ public class ApiInfoRegister extends JPanel {
                     accessLicenseTextFiled.getText(),
                     secretKeyTextFiled.getText()
             );
-            Long id = apiInfoRepository.save(
+            apiInfoRepository.save(
                     new ApiInfo(dto.getName(), dto.getCustomerId(), dto.getAccessLicense(), dto.getSecretKey()));
-            // apiInfo변경, 엑셀생성 페이지 갱신
-            ApiInfoDeleteModify apiInfoDeleteModify = (ApiInfoDeleteModify) panelAdvisor.get("apiInfoDeleteModify");
-            apiInfoDeleteModify.reloadApiInfo();
+            // Reloadable 구현체 모두 reload
+            reloader.reload();
 
             // textFiled 모두 비우기
             setTextFiledEmpty();

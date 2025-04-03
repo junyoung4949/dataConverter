@@ -7,10 +7,11 @@ import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class JPanelAdvisor {
+public class ComponentManager {
 
-    @Getter
-    @Setter
+    @Getter @Setter
+    private JFrame window;
+    @Getter @Setter
     private JPanel navigation;
     private final Map<String, JPanel> store = new HashMap<>();
 

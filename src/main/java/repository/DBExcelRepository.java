@@ -17,6 +17,11 @@ public class DBExcelRepository implements ExcelRepository {
     public void update(Excel excel) {
     }
 
+    @Override
+    public void delete() {
+
+    }
+
 //    private static final String URL = "jdbc:h2:~/test"; // H2 사용 예제 (MySQL 사용 시 변경 가능)
 //    private static final String USER = "sa"; // MySQL 사용 시 "root" 또는 설정된 사용자
 //    private static final String PASSWORD = "";

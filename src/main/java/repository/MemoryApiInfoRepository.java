@@ -2,38 +2,42 @@ package repository;
 
 import entity.ApiInfo;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class MemoryApiInfoRepository implements ApiInfoRepository {
 
-    private final static List<ApiInfo> store = new ArrayList<>();
-    private static Long index = 0L;
+    private final Map<Long, ApiInfo> store = new HashMap<>();
+    private final AtomicLong index = new AtomicLong(1L); // ID 증가용
 
     @Override
     public Long save(ApiInfo entity) {
-        entity.setId(index);
-        store.add(index.intValue(), entity);
-        return index++;
+        Long id = index.getAndIncrement(); // ID 자동 증가
+        entity.setId(id);
+        store.put(id, entity);
+        return id;
     }
 
     @Override
     public ApiInfo get(Long id) {
-        return store.get(id.intValue());
+        return store.get(id);
     }
 
     @Override
     public List<ApiInfo> getAll() {
-        return store;
+        return new ArrayList<>(store.values());
     }
 
     @Override
     public void update(Long id, ApiInfo apiInfo) {
-        store.add(id.intValue(), apiInfo);
+        if (store.containsKey(id)) {
+            apiInfo.setId(id);
+            store.put(id, apiInfo);
+        }
     }
 
     @Override
     public void remove(Long id) {
-        store.remove(id.intValue());
+        store.remove(id);
     }
 }
