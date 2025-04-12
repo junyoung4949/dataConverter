@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ApiInfo {
 
-    public ApiInfo(String name, String customerId, String accessLicense, String secretKey) {
+    public ApiInfo(String name, Long customerId, String accessLicense, String secretKey) {
         this.name = name;
         this.customerId = customerId;
         this.accessLicense = accessLicense;
@@ -18,7 +18,7 @@ public class ApiInfo {
 
     private Long id;
     private String name;
-    private String customerId;
+    private Long customerId;
     private String accessLicense;
     private String secretKey;
 }

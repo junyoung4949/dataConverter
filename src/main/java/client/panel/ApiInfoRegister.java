@@ -11,7 +11,7 @@ import java.awt.*;
 
 public class ApiInfoRegister extends JPanel {
     private JTextField nameTextFiled;
-    private JTextField customIdTextFiled;
+    private JTextField customerIdTextFiled;
     private JTextField accessLicenseTextFiled;
     private JTextField secretKeyTextFiled;
     private JButton submitButton;
@@ -59,8 +59,8 @@ public class ApiInfoRegister extends JPanel {
         add(new JLabel("CUSTOMER_ID :"), gbc);
         gbc.gridx = 1; // 오른쪽 입력 필드
         gbc.weightx = 0.7;
-        this.customIdTextFiled = new JTextField(20);
-        add(customIdTextFiled, gbc);
+        this.customerIdTextFiled = new JTextField(20);
+        add(customerIdTextFiled, gbc);
 
         gbc.gridx = 0; // 왼쪽 정렬
         gbc.gridy = 2;
@@ -94,7 +94,7 @@ public class ApiInfoRegister extends JPanel {
         submitButton.addActionListener(e -> {
             ApiInfoDto dto = new ApiInfoDto(
                     nameTextFiled.getText(),
-                    customIdTextFiled.getText(),
+                    Long.parseLong(customerIdTextFiled.getText()),
                     accessLicenseTextFiled.getText(),
                     secretKeyTextFiled.getText()
             );
@@ -110,7 +110,7 @@ public class ApiInfoRegister extends JPanel {
 
     private void setTextFiledEmpty() {
         nameTextFiled.setText("");
-        customIdTextFiled.setText("");
+        customerIdTextFiled.setText("");
         accessLicenseTextFiled.setText("");
         secretKeyTextFiled.setText("");
     }

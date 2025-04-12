@@ -1,9 +1,8 @@
 package util;
 
-import repository.ApiInfoRepository;
-import repository.ExcelRepository;
-import repository.MemoryApiInfoRepository;
-import repository.MemoryExcelRepository;
+import api.RestClient;
+import api.SignaturesGenerator;
+import repository.*;
 import service.ExcelService;
 
 public class Context {
@@ -13,13 +12,17 @@ public class Context {
     private final ExcelRepository excelRepository;
     private final Reloader reloader;
     private final ExcelService excelService;
+    private final RestClient restClient;
+    private final SignaturesGenerator signaturesGenerator;
 
     public Context() {
         this.componentManager = new ComponentManager();
-        this.apiInfoRepository = new MemoryApiInfoRepository();
-        this.excelRepository = new MemoryExcelRepository();
+        this.apiInfoRepository = new DBApiInfoRepository();
+        this.excelRepository = new DBExcelRepository();
         this.reloader = new Reloader(this.componentManager);
         this.excelService = null;
+        this.signaturesGenerator = new SignaturesGenerator();
+        this.restClient = new RestClient(this.signaturesGenerator);
     }
 
     public ComponentManager componentManager() {
