@@ -7,7 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class ApiInfoDto {
     private String name;
-    private String customerId;
+    private Long customerId;
     private String accessLicense;
     private String secretKey;
 }

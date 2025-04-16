@@ -1,9 +1,12 @@
 package util;
 
-import repository.ApiInfoRepository;
-import repository.ExcelRepository;
-import repository.MemoryApiInfoRepository;
-import repository.MemoryExcelRepository;
+import api.HttpRequestExecutor;
+import api.HttpRequestGenerator;
+import api.SignaturesGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import repository.*;
+import service.ExcelDataService;
+import service.ExcelEditService;
 import service.ExcelService;
 
 public class Context {
@@ -12,14 +15,24 @@ public class Context {
     private final ApiInfoRepository apiInfoRepository;
     private final ExcelRepository excelRepository;
     private final Reloader reloader;
-    private final ExcelService excelService;
+
+    private final HttpRequestGenerator httpRequestGenerator;
+    private final HttpRequestExecutor httpRequestExecutor;
+    private final SignaturesGenerator signaturesGenerator;
+    private final ExcelDataService excelDataService;
+    private final ExcelEditService excelEditService;
 
     public Context() {
+        this.excelRepository = new DBExcelRepository();
         this.componentManager = new ComponentManager();
-        this.apiInfoRepository = new MemoryApiInfoRepository();
-        this.excelRepository = new MemoryExcelRepository();
+        this.apiInfoRepository = new DBApiInfoRepository();
+
+        this.signaturesGenerator = new SignaturesGenerator();
+        this.httpRequestGenerator = new HttpRequestGenerator(this.signaturesGenerator);
+        this.httpRequestExecutor = new HttpRequestExecutor(new ObjectMapper());
+        this.excelDataService = new ExcelDataService(this.httpRequestGenerator, this.httpRequestExecutor);
+        this.excelEditService = new ExcelEditService(this.excelRepository);
         this.reloader = new Reloader(this.componentManager);
-        this.excelService = null;
     }
 
     public ComponentManager componentManager() {
@@ -38,7 +51,11 @@ public class Context {
         return this.reloader;
     }
 
-    public ExcelService excelService() {
-        return this.excelService;
+    public ExcelDataService excelDataService() {
+        return this.excelDataService;
+    }
+
+    public ExcelEditService excelEditService() {
+        return this.excelEditService;
     }
 }
