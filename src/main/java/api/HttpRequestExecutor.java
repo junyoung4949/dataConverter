@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dto.ExcelColumnDto;
 import dto.StatReportGetDto;
 import lombok.extern.slf4j.Slf4j;
+import util.ExceptionResolver;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,22 +18,26 @@ public class HttpRequestExecutor {
 
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
+    private final ExceptionResolver exceptionResolver;
+
     private final Integer MAX_ATTEMPT = 5;
     private final Integer MAX_ATTEMPT_FOR_STAT_REPORT = 6;
 
-    public HttpRequestExecutor(ObjectMapper objectMapper) {
+    public HttpRequestExecutor(ObjectMapper objectMapper, ExceptionResolver exceptionResolver) {
         this.objectMapper = objectMapper;
         this.httpClient = HttpClient.newHttpClient();
+        this.exceptionResolver = exceptionResolver;
     }
 
     public <T> T sendForObjectWithRetry(HttpRequest request, Class<T> responseType) {
         int attempt = 0;
+        int statusCode = 0;
         String uri = request.uri().toString();
 
         while (attempt < MAX_ATTEMPT) {
             try {
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                int statusCode = response.statusCode();
+                statusCode = response.statusCode();
 
                 if (200 <= statusCode && statusCode < 300) {
                     String body = response.body();
@@ -56,20 +61,20 @@ public class HttpRequestExecutor {
             }
         }
 
-        log.error("{} 요청 실패 : 최대요청횟수 초과함", uri);
-
+        exceptionResolver.resolve("최대 요청 개수 초과함", new RuntimeException(uri + " 요청 실패, statusCode : " + statusCode));
         // 뒤에 어떤 예외처리를 해야함
         return null;
     }
 
     public StatReportGetDto sendForStatReportPostDtoWithRetry(HttpRequest request) {
         int attempt = 0;
+        int statusCode = 0;
         String uri = request.uri().toString();
 
         while (attempt < MAX_ATTEMPT_FOR_STAT_REPORT) {
             try {
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                int statusCode = response.statusCode();
+                statusCode = response.statusCode();
                 if (200 <= statusCode && statusCode < 300) {
                     String body = response.body();
                     StatReportGetDto statReportPostDto = objectMapper.readValue(body, StatReportGetDto.class);
@@ -97,7 +102,7 @@ public class HttpRequestExecutor {
             }
         }
 
-        log.error("{} 요청 실패 : 최대요청횟수 초과함", uri);
+        exceptionResolver.resolve("최대 요청 개수 초과함", new RuntimeException(uri + " 요청 실패, statusCode : " + statusCode));
 
         // 뒤에 어떤 예외처리를 해야함
         return null;
@@ -105,12 +110,13 @@ public class HttpRequestExecutor {
 
     public InputStream sendForInputStreamWithRetry(HttpRequest request) {
         int attempt = 0;
+        int statusCode = 0;
         String uri = request.uri().toString();
 
         while (attempt < MAX_ATTEMPT) {
             try {
                 HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
-                int statusCode = response.statusCode();
+                statusCode = response.statusCode();
 
                 if (200 <= statusCode && statusCode < 300) {
                     return response.body();
@@ -133,7 +139,7 @@ public class HttpRequestExecutor {
             }
         }
 
-        log.error("{} 요청 실패 : 최대요청횟수 초과함", uri);
+        exceptionResolver.resolve("최대 요청 개수 초과함", new RuntimeException(uri + " 요청 실패, statusCode : " + statusCode));
 
         // 뒤에 어떤 예외처리를 해야함
         return null;
@@ -141,18 +147,18 @@ public class HttpRequestExecutor {
 
     public ExcelColumnDto sendForExcelColumnDtoWithRetry(HttpRequest request, String date, String adId) {
         int attempt = 0;
+        int statusCode = 0;
         String uri = request.uri().toString();
 
         while (attempt < MAX_ATTEMPT) {
             try {
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                int statusCode = response.statusCode();
+                statusCode = response.statusCode();
 
                 if (200 <= statusCode && statusCode < 300) {
                     JsonNode root = objectMapper.readTree(response.body());
                     JsonNode firstData = root.path("data").get(0);
                     ExcelColumnDto excelColumnDto = objectMapper.treeToValue(firstData, ExcelColumnDto.class);
-                    log.info("response.body() : {}", response.body());
                     excelColumnDto.setDate(date);
                     excelColumnDto.setAdId(adId);
                     return excelColumnDto;
@@ -175,8 +181,7 @@ public class HttpRequestExecutor {
             }
         }
 
-        log.error("{} 요청 실패 : 최대요청횟수 초과함", uri);
-
+        exceptionResolver.resolve("최대 요청 개수 초과함", new RuntimeException(uri + " 요청 실패, statusCode : " + statusCode));
         // 뒤에 어떤 예외처리를 해야함
         return null;
     }

@@ -22,17 +22,25 @@ public class Context {
     private final ExcelDataService excelDataService;
     private final ExcelEditService excelEditService;
 
+    private final ExceptionResolver exceptionResolver;
+    private final MessageDisplayer messageDisplayer;
+
     public Context() {
+        this.messageDisplayer = new MessageDisplayer();
+        this.exceptionResolver = new ExceptionResolver(this.messageDisplayer);
+
         this.excelRepository = new DBExcelRepository();
         this.componentManager = new ComponentManager();
         this.apiInfoRepository = new DBApiInfoRepository();
 
-        this.signaturesGenerator = new SignaturesGenerator();
-        this.httpRequestGenerator = new HttpRequestGenerator(this.signaturesGenerator);
-        this.httpRequestExecutor = new HttpRequestExecutor(new ObjectMapper());
-        this.excelDataService = new ExcelDataService(this.httpRequestGenerator, this.httpRequestExecutor);
-        this.excelEditService = new ExcelEditService(this.excelRepository);
+        this.signaturesGenerator = new SignaturesGenerator(this.exceptionResolver);
+        this.httpRequestGenerator = new HttpRequestGenerator(this.signaturesGenerator, this.exceptionResolver);
+        this.httpRequestExecutor = new HttpRequestExecutor(new ObjectMapper(), this.exceptionResolver);
+        this.excelDataService = new ExcelDataService(this.httpRequestGenerator, this.httpRequestExecutor, this.exceptionResolver);
+        this.excelEditService = new ExcelEditService(this.excelRepository, this.exceptionResolver);
         this.reloader = new Reloader(this.componentManager);
+
+
     }
 
     public ComponentManager componentManager() {
