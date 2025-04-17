@@ -152,7 +152,6 @@ public class HttpRequestExecutor {
                     JsonNode root = objectMapper.readTree(response.body());
                     JsonNode firstData = root.path("data").get(0);
                     ExcelColumnDto excelColumnDto = objectMapper.treeToValue(firstData, ExcelColumnDto.class);
-                    log.info("response.body() : {}", response.body());
                     excelColumnDto.setDate(date);
                     excelColumnDto.setAdId(adId);
                     return excelColumnDto;

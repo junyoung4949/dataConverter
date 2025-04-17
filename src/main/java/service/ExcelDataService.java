@@ -17,6 +17,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,49 +35,52 @@ public class ExcelDataService {
     }
 
     public Map<String, List<ExcelColumnDto>> getExcelData(List<ApiInfo> apiInfos, String dateRange) {
+        ExecutorService executor = Executors.newFixedThreadPool(Math.min(apiInfos.size(), 10)); // 최대 10개 쓰레드 사용
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        Map<String, List<ExcelColumnDto>> resultMap = Collections.synchronizedMap(new HashMap<>());
 
         String[] dateArray = dateRange.split("~");
-        Map<String, List<ExcelColumnDto>> resultMap = new HashMap<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-        if (dateArray.length == 1) { // 하루치를 원하는 경우
-            apiInfos.forEach(apiInfo -> {
-                List<ExcelColumnDto> excelColumnDtoList = new ArrayList<>();
-                Set<String> noReduplicationAdIds = getNoReduplicationAdId(apiInfo, dateArray[0]);
-                noReduplicationAdIds.forEach(adId -> {
-                    excelColumnDtoList.add(getExcelColumn(apiInfo, adId, dateArray[0]));
-                });
-                resultMap.put(apiInfo.getName() + LocalDateTime.now(), excelColumnDtoList);
-            });
-            return resultMap;
-        } else { // 여러날짜를 원하는 경우
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-
-            // 시작일, 종료일 분리
+        List<String> dateList;
+        if (dateArray.length == 1) {
+            dateList = List.of(dateArray[0]);
+        } else {
             LocalDate startDate = LocalDate.parse(dateArray[0], formatter);
             LocalDate endDate = LocalDate.parse(dateArray[1], formatter);
-
-            // 날짜를 저장할 리스트
-            List<String> dateList = new ArrayList<>();
-
-            // 시작일부터 종료일까지 하루씩 증가하며 리스트에 추가
-            LocalDate current = startDate;
-            while (!current.isAfter(endDate)) {
-                dateList.add(current.format(formatter));
-                current = current.plusDays(1);
+            dateList = new ArrayList<>();
+            for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+                dateList.add(date.format(formatter));
             }
-
-            apiInfos.forEach(apiInfo -> {
-                List<ExcelColumnDto> excelColumnDtoList = new ArrayList<>();
-                dateList.forEach(date -> {
-                    Set<String> noReduplicationAdIds = getNoReduplicationAdId(apiInfo, date);
-                    noReduplicationAdIds.forEach(adId -> {
-                        excelColumnDtoList.add(getExcelColumn(apiInfo, adId, date));
-                    });
-                });
-                resultMap.put(apiInfo.getName() + LocalDateTime.now(), excelColumnDtoList);
-            });
-            return resultMap;
         }
+
+        // apiInfo 별로 비동기 요청
+        for (ApiInfo apiInfo : apiInfos) {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                List<ExcelColumnDto> excelColumnDtoList = new ArrayList<>();
+                for (String date : dateList) {
+                    Set<String> adIds = getNoReduplicationAdId(apiInfo, date);
+                    for (String adId : adIds) {
+                        ExcelColumnDto dto = getExcelColumn(apiInfo, adId, date);
+                        if (dto != null) {
+                            excelColumnDtoList.add(dto);
+                        }
+                    }
+                }
+                resultMap.put(makeFileName(apiInfo), excelColumnDtoList);
+            }, executor);
+            futures.add(future);
+        }
+
+        // 모든 작업이 끝날 때까지 대기
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        executor.shutdown();
+
+        return resultMap;
+    }
+
+    private String makeFileName(ApiInfo apiInfo) {
+        return apiInfo.getName() + LocalDateTime.now().toString().substring(0, 10) + UUID.randomUUID().toString().substring(0, 5);
     }
 
     private Set<String> getNoReduplicationAdId(ApiInfo apiInfo, String date){
@@ -117,6 +123,7 @@ public class ExcelDataService {
         } catch (IOException e) {
             log.error("inputStream에서 adIds를 가져오는 중 입출력 예외 발생 : ", e);
         }
+        log.info("downloadUrl 에서 adIdSet 가져옴, downloadUrl : {}", downloadUrl);
         return resultSet;
     }
 
