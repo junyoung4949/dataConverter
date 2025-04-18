@@ -7,6 +7,7 @@ import dto.StatReportGetDto;
 import dto.StatReportPostDto;
 import entity.ApiInfo;
 import lombok.extern.slf4j.Slf4j;
+import util.ExceptionResolver;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,10 +26,12 @@ public class ExcelDataService {
 
     private final HttpRequestGenerator httpRequestGenerator;
     private final HttpRequestExecutor httpRequestExecutor;
+    private final ExceptionResolver exceptionResolver;
 
-    public ExcelDataService(HttpRequestGenerator httpRequestGenerator, HttpRequestExecutor httpRequestExecutor) {
+    public ExcelDataService(HttpRequestGenerator httpRequestGenerator, HttpRequestExecutor httpRequestExecutor, ExceptionResolver exceptionResolver) {
         this.httpRequestGenerator = httpRequestGenerator;
         this.httpRequestExecutor = httpRequestExecutor;
+        this.exceptionResolver = exceptionResolver;
     }
 
     public Map<String, List<ExcelColumnDto>> getExcelData(List<ApiInfo> apiInfos, String dateRange) {
@@ -41,11 +44,15 @@ public class ExcelDataService {
                 List<ExcelColumnDto> excelColumnDtoList = new ArrayList<>();
                 Set<String> noReduplicationAdIds = getNoReduplicationAdId(apiInfo, dateArray[0]);
                 noReduplicationAdIds.forEach(adId -> {
-                    excelColumnDtoList.add(getExcelColumn(apiInfo, adId, dateArray[0]));
-                });
+                    ExcelColumnDto excelColumn = getExcelColumn(apiInfo, adId, dateArray[0]);
+                    if (excelColumn != null) {
+                        excelColumnDtoList.add(excelColumn);
+                    } else {
+                        exceptionResolver.resolve("데이터 누락 발생", new RuntimeException());
+                    }
+            });
                 resultMap.put(apiInfo.getName() + LocalDateTime.now(), excelColumnDtoList);
             });
-            return resultMap;
         } else { // 여러날짜를 원하는 경우
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
@@ -68,13 +75,18 @@ public class ExcelDataService {
                 dateList.forEach(date -> {
                     Set<String> noReduplicationAdIds = getNoReduplicationAdId(apiInfo, date);
                     noReduplicationAdIds.forEach(adId -> {
-                        excelColumnDtoList.add(getExcelColumn(apiInfo, adId, date));
+                        ExcelColumnDto excelColumn = getExcelColumn(apiInfo, adId, date);
+                        if (excelColumn != null) {
+                            excelColumnDtoList.add(excelColumn);
+                        } else {
+                            exceptionResolver.resolve("데이터 누락 발생", new RuntimeException());
+                        }
                     });
                 });
                 resultMap.put(apiInfo.getName() + LocalDateTime.now(), excelColumnDtoList);
             });
-            return resultMap;
         }
+        return resultMap;
     }
 
     private Set<String> getNoReduplicationAdId(ApiInfo apiInfo, String date){
@@ -115,7 +127,7 @@ public class ExcelDataService {
                 }
             }
         } catch (IOException e) {
-            log.error("inputStream에서 adIds를 가져오는 중 입출력 예외 발생 : ", e);
+            exceptionResolver.resolve("inputStream에서 adIds를 가져오는 중 입출력 예외 발생", e);
         }
         return resultSet;
     }

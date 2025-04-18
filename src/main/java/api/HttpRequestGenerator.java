@@ -2,6 +2,7 @@ package api;
 
 import entity.ApiInfo;
 import lombok.extern.slf4j.Slf4j;
+import util.ExceptionResolver;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -14,11 +15,14 @@ import java.util.Map;
 public class HttpRequestGenerator {
 
     private final SignaturesGenerator signaturesGenerator;
+    private final ExceptionResolver exceptionResolver;
+
     private final String BASE_URL = "https://api.searchad.naver.com";
     private final String CHARACTER_SET = "UTF-8";
 
-    public HttpRequestGenerator(SignaturesGenerator signaturesGenerator) {
+    public HttpRequestGenerator(SignaturesGenerator signaturesGenerator, ExceptionResolver exceptionResolver) {
         this.signaturesGenerator = signaturesGenerator;
+        this.exceptionResolver = exceptionResolver;
     }
 
     public HttpRequest genGetHttpRequest(String resource, ApiInfo apiInfo) {
@@ -36,7 +40,7 @@ public class HttpRequestGenerator {
                     .header("X-API-KEY", apiInfo.getAccessLicense())
                     .build();
         } catch (URISyntaxException e) {
-            log.error("url syntax exception : ", e);
+            exceptionResolver.resolve("url syntax exception", e);
         }
         return null;
     }
@@ -57,7 +61,7 @@ public class HttpRequestGenerator {
                     .header("X-API-KEY", apiInfo.getAccessLicense())
                     .build();
         } catch (URISyntaxException e) {
-            log.error("url syntax exception : ", e);
+            exceptionResolver.resolve("url syntax exception", e);
         }
         return null;
     }
@@ -77,7 +81,7 @@ public class HttpRequestGenerator {
                     .header("X-API-KEY", apiInfo.getAccessLicense())
                     .build();
         } catch (URISyntaxException e) {
-            log.error("url syntax exception : ", e);
+            exceptionResolver.resolve("url syntax exception", e);
         }
         return null;
     }
@@ -97,7 +101,7 @@ public class HttpRequestGenerator {
                     .header("X-API-KEY", apiInfo.getAccessLicense())
                     .build();
         } catch (URISyntaxException e) {
-            log.error("url syntax exception : ", e);
+            exceptionResolver.resolve("url syntax exception", e);
         }
         return null;
     }
@@ -111,7 +115,7 @@ public class HttpRequestGenerator {
                         .append(URLEncoder.encode(entry.getValue(), CHARACTER_SET))
                         .append("&");
             } catch (UnsupportedEncodingException e) {
-                log.error("url encode중 exception 발생 : ", e);
+                exceptionResolver.resolve("url encode중 exception 발생", e);
             }
         }
         if (parameter.length() > 1) {

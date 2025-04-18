@@ -1,5 +1,6 @@
 package api;
 
+import util.ExceptionResolver;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -8,7 +9,14 @@ import java.util.Base64;
 
 public class SignaturesGenerator {
 
+
     private static final String HMAC_SHA256 = "HmacSHA256"; // 표준 이름
+    private final ExceptionResolver exceptionResolver;
+
+
+    public SignaturesGenerator(ExceptionResolver exceptionResolver) {
+        this.exceptionResolver =exceptionResolver;
+    }
 
     public String generateSignature(String timestamp, String method, String resource, String key) {
         String data = timestamp + "." + method + "." + resource;
@@ -23,8 +31,8 @@ public class SignaturesGenerator {
             byte[] rawHmac = mac.doFinal(data.getBytes());
             return Base64.getEncoder().encodeToString(rawHmac); // Java 8 이상
         } catch (GeneralSecurityException e) {
-            e.printStackTrace();
-            return null;
+            exceptionResolver.resolve("signature 생성중 오류 발생", e);
         }
+        return null;
     }
 }

@@ -95,8 +95,10 @@ public class ExcelGen extends JPanel implements Reloadable {
                 return;
             }
 
+            JOptionPane.showMessageDialog(null, "생성 시작");
             Map<String, List<ExcelColumnDto>> excelData = excelDataService.getExcelData(new ArrayList<>(selectedItems), dateRange);
             excelEditService.editAndSave(excelData, selectedFolder);
+            JOptionPane.showMessageDialog(null, "생성 완료");
         });
 
         // southPanel에 엑셀 생성 버튼, 날짜 입력 필드, 디렉토리 선택 버튼 등록

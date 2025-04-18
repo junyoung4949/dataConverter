@@ -10,6 +10,8 @@ import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import repository.ExcelRepository;
+import util.ExceptionResolver;
+import util.MessageDisplayer;
 
 import java.io.*;
 import java.security.GeneralSecurityException;
@@ -19,9 +21,11 @@ import java.util.Map;
 public class ExcelEditService {
 
     private final ExcelRepository excelRepository;
+    private final ExceptionResolver exceptionResolver;
 
-    public ExcelEditService(ExcelRepository excelRepository) {
+    public ExcelEditService(ExcelRepository excelRepository, ExceptionResolver exceptionResolver) {
         this.excelRepository = excelRepository;
+        this.exceptionResolver = exceptionResolver;
     }
 
     public void editAndSave(Map<String, List<ExcelColumnDto>> resultMap, File saveDirectory) {
@@ -39,14 +43,15 @@ public class ExcelEditService {
                 Decryptor decryptor = Decryptor.getInstance(info);
 
                 if (!decryptor.verifyPassword(excel.getPassword())) {
-                    throw new RuntimeException("비밀번호가 틀렸습니다.");
+                    exceptionResolver.resolve("비밀번호가 틀렸습니다", new RuntimeException("비밀번호가 틀렸습니다."));
                 }
 
                 try (InputStream decryptedStream = decryptor.getDataStream(fsEach)) {
                     Workbook workbook = new XSSFWorkbook(decryptedStream);
                     Sheet rawDataSheet = workbook.getSheet("row data");
+
                     if (rawDataSheet == null) {
-                        throw new RuntimeException("row data 이름을 가진 sheet가 존재하지 않음");
+                        exceptionResolver.resolve("raw data 이름을 가진 sheet가 존재하지 않음", new RuntimeException("raw data 이름을 가진 sheet가 존재하지 않음"));
                     }
 
                     Row headerRow = rawDataSheet.createRow(0);
@@ -86,9 +91,9 @@ public class ExcelEditService {
                     }
                 }
             } catch (IOException e) {
-                throw new RuntimeException("파일 읽는 중 입출력 예외 발생", e);
+                exceptionResolver.resolve("파일 읽는중 입출력 예외 발생", e);
             } catch (GeneralSecurityException e) {
-                throw new RuntimeException("파일 복호화 중 예외 발생", e);
+                exceptionResolver.resolve("파일 복호화 중 예외 발생", e);
             }
         }
     }
