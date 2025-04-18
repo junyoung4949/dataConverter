@@ -48,7 +48,7 @@ public class ExcelEditService {
 
                 try (InputStream decryptedStream = decryptor.getDataStream(fsEach)) {
                     Workbook workbook = new XSSFWorkbook(decryptedStream);
-                    Sheet rawDataSheet = workbook.getSheet("row data");
+                    Sheet rawDataSheet = workbook.getSheet("raw data");
 
                     if (rawDataSheet == null) {
                         exceptionResolver.resolve("raw data 이름을 가진 sheet가 존재하지 않음", new RuntimeException("raw data 이름을 가진 sheet가 존재하지 않음"));
