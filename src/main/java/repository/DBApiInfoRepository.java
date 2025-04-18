@@ -2,16 +2,39 @@ package repository;
 
 import entity.ApiInfo;
 
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DBApiInfoRepository implements ApiInfoRepository {
 
-    private static final String DB_URL = "jdbc:sqlite:database.db"; // DB 파일
+    private static final String DB_FILE_PATH = "database/database.db"; // 외부 DB 위치
+    private static final String DB_URL = "jdbc:sqlite:" + DB_FILE_PATH;
 
     public DBApiInfoRepository() {
+        ensureDatabaseExists(); // DB가 없으면 복사
         createTable(); // 테이블 자동 생성
+    }
+
+    // DB 파일이 없으면 resources에 있는 기본 DB 복사
+    private void ensureDatabaseExists() {
+        Path dbPath = Paths.get(DB_FILE_PATH);
+        if (!Files.exists(dbPath)) {
+            try (InputStream in = getClass().getResourceAsStream("/init_database.db")) {
+                if (in == null) {
+                    throw new RuntimeException("init_database.db 리소스를 찾을 수 없습니다.");
+                }
+                Files.createDirectories(dbPath.getParent());
+                Files.copy(in, dbPath);
+                System.out.println("초기 init_database.db 파일을 복사했습니다.");
+            } catch (Exception e) {
+                throw new RuntimeException("init_database.db 파일 복사 실패", e);
+            }
+        }
     }
 
     // 테이블 생성

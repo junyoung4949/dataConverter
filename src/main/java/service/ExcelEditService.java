@@ -8,6 +8,7 @@ import org.apache.poi.poifs.crypt.EncryptionMode;
 import org.apache.poi.poifs.crypt.Encryptor;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import repository.ExcelRepository;
 
 import java.io.*;
@@ -42,7 +43,7 @@ public class ExcelEditService {
                 }
 
                 try (InputStream decryptedStream = decryptor.getDataStream(fsEach)) {
-                    Workbook workbook = WorkbookFactory.create(decryptedStream);
+                    Workbook workbook = new XSSFWorkbook(decryptedStream);
                     Sheet rawDataSheet = workbook.getSheet("row data");
                     if (rawDataSheet == null) {
                         throw new RuntimeException("row data 이름을 가진 sheet가 존재하지 않음");

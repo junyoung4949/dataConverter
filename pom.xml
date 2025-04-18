@@ -14,6 +14,35 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>Application</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
         <!-- lombok -->
         <dependency>
@@ -21,13 +50,6 @@
             <artifactId>lombok</artifactId>
             <version>1.18.38</version>
             <scope>provided</scope>
-        </dependency>
-
-        <!--password encoder-->
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-crypto</artifactId>
-            <version>6.4.4</version>
         </dependency>
 
         <!-- sqlite db -->
@@ -49,13 +71,6 @@
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
             <version>2.3.1</version>
-        </dependency>
-
-        <!-- 암호화를 위한 -->
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.69</version>
         </dependency>
 
         <dependency>

@@ -17,8 +17,7 @@ public class HttpRequestExecutor {
 
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
-    private final Integer MAX_ATTEMPT = 5;
-    private final Integer MAX_ATTEMPT_FOR_STAT_REPORT = 6;
+    private final Integer MAX_ATTEMPT = 6;
 
     public HttpRequestExecutor(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
@@ -66,7 +65,7 @@ public class HttpRequestExecutor {
         int attempt = 0;
         String uri = request.uri().toString();
 
-        while (attempt < MAX_ATTEMPT_FOR_STAT_REPORT) {
+        while (attempt < MAX_ATTEMPT) {
             try {
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 int statusCode = response.statusCode();
@@ -79,12 +78,12 @@ public class HttpRequestExecutor {
                         log.warn("{} 요청 재시도 ( 레포트가 완성되지 않음 ) , status : {}", uri, statReportPostDto.getStatus());
                     }
                 } else {
-                    log.warn("{} 요청 실패 : 상태코드: {}, (재시도 {}/{})", uri, statusCode, attempt + 1, MAX_ATTEMPT_FOR_STAT_REPORT);
+                    log.warn("{} 요청 실패 : 상태코드: {}, (재시도 {}/{})", uri, statusCode, attempt + 1, MAX_ATTEMPT);
                 }
             } catch (IOException e) {
-                log.warn("{} 요청시도중 입출력 예외 발생 : (재시도 {}/{})", uri, attempt + 1, MAX_ATTEMPT_FOR_STAT_REPORT);
+                log.warn("{} 요청시도중 입출력 예외 발생 : (재시도 {}/{})", uri, attempt + 1, MAX_ATTEMPT);
             } catch (InterruptedException e) {
-                log.warn("{} 요청시도중 인터럽트 예외 발생 : (재시도 {}/{})", uri, attempt + 1, MAX_ATTEMPT_FOR_STAT_REPORT);
+                log.warn("{} 요청시도중 인터럽트 예외 발생 : (재시도 {}/{})", uri, attempt + 1, MAX_ATTEMPT);
             }
 
             attempt++;

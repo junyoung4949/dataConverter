@@ -37,5 +37,5 @@ build/
 ### Mac OS ###
 .DS_Store
 
-### Database
-database.db
+### DATABASE ###
+database/database.db
