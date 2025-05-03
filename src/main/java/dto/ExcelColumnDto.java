@@ -7,7 +7,7 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ExcelColumnDto {
     private String date;      // statDt에 해당
-    private String AdId;      // 광고 Id
+    private String adId;      // 광고 Id
     private String impCnt;    // 노출수
     private String clkCnt;    // 클릭수
     private String salesAmt;  // 총비용

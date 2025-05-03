@@ -15,5 +15,9 @@ public class Application {
         componentManager.add("apiInfoDeleteModify", new ApiInfoDeleteModify(context));
 
         componentManager.setWindow(new MainGui(context));
+
+        Runtime rt = Runtime.getRuntime();
+        System.out.println("Max Heap: " + rt.maxMemory() / (1024 * 1024) + "MB");
+        System.out.println("Initial Heap: " + rt.totalMemory() / (1024 * 1024) + "MB");
     }
 }

@@ -83,7 +83,7 @@ public class ExcelDataService {
     }
 
     private String makeFileName(ApiInfo apiInfo) {
-        return apiInfo.getName() + LocalDateTime.now().toString().substring(0, 10) + UUID.randomUUID().toString().substring(0, 5);
+        return apiInfo.getName() + LocalDateTime.now().toString().substring(0, 10) + UUID.randomUUID().toString().substring(0, 7);
     }
 
     private Set<String> getNoReduplicationAdId(ApiInfo apiInfo, String date){

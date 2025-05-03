@@ -8,6 +8,8 @@ import repository.*;
 import service.ExcelDataService;
 import service.ExcelEditService;
 import service.ExcelService;
+import util.excel.PasswordProtectedExcelHandler;
+import util.excel.RawDataSheetModifier;
 
 public class Context {
 
@@ -25,9 +27,15 @@ public class Context {
     private final ExceptionResolver exceptionResolver;
     private final MessageDisplayer messageDisplayer;
 
+    private final PasswordProtectedExcelHandler passwordProtectedExcelHandler;
+    private final RawDataSheetModifier rawDataSheetModifier;
+
     public Context() {
         this.messageDisplayer = new MessageDisplayer();
         this.exceptionResolver = new ExceptionResolver(this.messageDisplayer);
+
+        this.passwordProtectedExcelHandler = new PasswordProtectedExcelHandler(this.exceptionResolver);
+        this.rawDataSheetModifier = new RawDataSheetModifier(this.exceptionResolver);
 
         this.excelRepository = new DBExcelRepository();
         this.componentManager = new ComponentManager();
@@ -37,9 +45,8 @@ public class Context {
         this.httpRequestGenerator = new HttpRequestGenerator(this.signaturesGenerator, this.exceptionResolver);
         this.httpRequestExecutor = new HttpRequestExecutor(new ObjectMapper(), this.exceptionResolver);
         this.excelDataService = new ExcelDataService(this.httpRequestGenerator, this.httpRequestExecutor, this.exceptionResolver);
-        this.excelEditService = new ExcelEditService(this.excelRepository, this.exceptionResolver);
+        this.excelEditService = new ExcelEditService(this.excelRepository, this.exceptionResolver, this.passwordProtectedExcelHandler, this.rawDataSheetModifier);
         this.reloader = new Reloader(this.componentManager);
-
 
     }
 
