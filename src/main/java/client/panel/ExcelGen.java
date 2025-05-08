@@ -1,5 +1,6 @@
 package client.panel;
 
+import client.worker.ExcelGenerateWorkerExecutor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dto.ExcelColumnDto;
 import entity.ApiInfo;
@@ -8,6 +9,7 @@ import service.ExcelDataService;
 import service.ExcelEditService;
 import util.Context;
 import util.Reloadable;
+import client.worker.ExcelGenerateWorker;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,22 +25,25 @@ public class ExcelGen extends JPanel implements Reloadable {
     private JList<ApiInfo> apiList;
     private JButton excelGenBtn;
     private JFileChooser fileChooser;
-    private Set<ApiInfo> selectedItems = new HashSet<>(); // 선택된 항목 저장
+    private Set<ApiInfo> selectedItems = new HashSet<>();
     private File selectedFolder;
     private JTextField dateTextFiled;
+    private JProgressBar progressBar;
 
     private final ApiInfoRepository apiInfoRepository;
     private final ExcelDataService excelDataService;
     private final ExcelEditService excelEditService;
+    private final ExcelGenerateWorkerExecutor excelGenerateWorkerExecutor;
 
     public ExcelGen(Context context) {
         this.apiInfoRepository = context.apiInfoRepository();
         this.excelDataService = context.excelDataService();
         this.excelEditService = context.excelEditService();
+        this.excelGenerateWorkerExecutor = context.excelGenerateWorkerExecutor();
 
         setLayout(new BorderLayout());
 
-        // 왼쪽 패널 (API 리스트)
+        // 왼쪽 리스트
         listModel = new DefaultListModel<>();
         apiList = new JList<>(listModel);
         apiList.setCellRenderer(new CheckBoxListRenderer());
@@ -49,32 +54,27 @@ public class ExcelGen extends JPanel implements Reloadable {
                 if (index >= 0) {
                     ApiInfo item = listModel.get(index);
                     if (selectedItems.contains(item)) {
-                        selectedItems.remove(item); // 이미 선택된 경우 해제
+                        selectedItems.remove(item);
                     } else {
-                        selectedItems.add(item); // 새로 선택
+                        selectedItems.add(item);
                     }
-                    apiList.repaint(); // UI 갱신
+                    apiList.repaint();
                 }
             }
         });
 
         JScrollPane scrollPane = new JScrollPane(apiList);
-        reload(); // 초기 데이터 로드
+        reload();
 
-        // 엑셀 생성 버튼, 날짜 입력 필드, 디렉토리 선택 버튼
-        JPanel southPanel = new JPanel();
-        southPanel.setLayout(new BorderLayout());
-
-        // 날짜 입력 필드
+        // 하단 패널 구성
+        JPanel southPanel = new JPanel(new BorderLayout());
         dateTextFiled = new JTextField(25);
-
-        // 디렉토리 선택 버튼
         JButton directoryChooseBtn = new JButton("폴더 선택");
+
         this.fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); // 폴더만 선택 가능
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         directoryChooseBtn.addActionListener(this::selectDirectory);
 
-        // 엑셀 생성 버튼
         excelGenBtn = new JButton("엑셀 생성");
         excelGenBtn.addActionListener(e -> {
             String dateRange = dateTextFiled.getText();
@@ -94,19 +94,20 @@ public class ExcelGen extends JPanel implements Reloadable {
                 return;
             }
 
-            JOptionPane.showMessageDialog(null, "생성 시작");
-            Map<String, List<ExcelColumnDto>> excelData = excelDataService.getExcelData(new ArrayList<>(selectedItems), dateRange);
-            excelEditService.editAndSave(excelData, selectedFolder);
-            JOptionPane.showMessageDialog(null, "생성 완료");
+            // ExcelGenerateWorker 실행
+            excelGenerateWorkerExecutor.excelGenExecute(selectedItems, dateRange, selectedFolder, excelGenBtn, progressBar, this);
         });
 
-        // southPanel에 엑셀 생성 버튼, 날짜 입력 필드, 디렉토리 선택 버튼 등록
         southPanel.add(directoryChooseBtn, BorderLayout.CENTER);
         southPanel.add(excelGenBtn, BorderLayout.EAST);
         southPanel.add(dateTextFiled, BorderLayout.WEST);
 
+        // 상단에 진행바 추가
+        progressBar = new JProgressBar();
+        progressBar.setStringPainted(true);
+        progressBar.setVisible(false);
+        add(progressBar, BorderLayout.NORTH);
 
-        // 레이아웃 구성
         add(scrollPane, BorderLayout.CENTER);
         add(southPanel, BorderLayout.SOUTH);
     }
@@ -118,7 +119,7 @@ public class ExcelGen extends JPanel implements Reloadable {
     @Override
     public void reload() {
         listModel.clear();
-        selectedItems.clear(); // 갱신 시 선택 항목 초기화
+        selectedItems.clear();
         List<ApiInfo> apiInfos = apiInfoRepository.getAll();
         apiInfos.forEach(listModel::addElement);
     }
@@ -134,7 +135,7 @@ public class ExcelGen extends JPanel implements Reloadable {
         @Override
         public Component getListCellRendererComponent(JList<? extends ApiInfo> list, ApiInfo value, int index, boolean isSelected, boolean cellHasFocus) {
             setText(value.getName());
-            setSelected(selectedItems.contains(value)); // 선택 상태 반영
+            setSelected(selectedItems.contains(value));
             return this;
         }
     }

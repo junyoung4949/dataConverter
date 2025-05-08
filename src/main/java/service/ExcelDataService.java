@@ -2,6 +2,7 @@ package service;
 
 import api.HttpRequestExecutor;
 import api.HttpRequestGenerator;
+import client.worker.ExcelGenerateWorkerExecutor;
 import dto.ExcelColumnDto;
 import dto.StatReportGetDto;
 import dto.StatReportPostDto;
@@ -30,11 +31,13 @@ public class ExcelDataService {
     private final HttpRequestGenerator httpRequestGenerator;
     private final HttpRequestExecutor httpRequestExecutor;
     private final ExceptionResolver exceptionResolver;
+    private final ExcelGenerateWorkerExecutor excelGenerateWorkerExecutor;
 
-    public ExcelDataService(HttpRequestGenerator httpRequestGenerator, HttpRequestExecutor httpRequestExecutor, ExceptionResolver exceptionResolver) {
+    public ExcelDataService(HttpRequestGenerator httpRequestGenerator, HttpRequestExecutor httpRequestExecutor, ExceptionResolver exceptionResolver, ExcelGenerateWorkerExecutor excelGenerateWorkerExecutor) {
         this.httpRequestGenerator = httpRequestGenerator;
         this.httpRequestExecutor = httpRequestExecutor;
         this.exceptionResolver = exceptionResolver;
+        this.excelGenerateWorkerExecutor = excelGenerateWorkerExecutor;
     }
 
     public Map<String, List<ExcelColumnDto>> getExcelData(List<ApiInfo> apiInfos, String dateRange) {
@@ -71,6 +74,7 @@ public class ExcelDataService {
                     }
                 }
                 resultMap.put(makeFileName(apiInfo), excelColumnDtoList);
+                excelGenerateWorkerExecutor.updateProgress();
             }, executor);
             futures.add(future);
         }
@@ -93,6 +97,9 @@ public class ExcelDataService {
 
         // 만든 report를 가져옴
         String downloadUrl = sendRequestForGetStatReport(reportJobId, apiInfo);
+
+        // report 삭제
+        deleteStatReport(reportJobId, apiInfo);
 
         // downloadUrl을 통해 tsx파일을 받아옴 -> adId를 중복을 제거해 반환함
         return sendRequestForGetTsx(downloadUrl, apiInfo);
@@ -128,6 +135,11 @@ public class ExcelDataService {
         }
         log.info("downloadUrl 에서 adIdSet 가져옴, downloadUrl : {}", downloadUrl);
         return resultSet;
+    }
+
+    private void deleteStatReport(Long reportJobId, ApiInfo apiInfo) {
+//        HttpRequest request = httpRequestGenerator.getDeleteStatReportsRequest(reportJobId, apiInfo);
+//        httpRequestExecutor.sendForDeleteStatReportsWithRetry(request);
     }
 
     private ExcelColumnDto getExcelColumn(ApiInfo apiInfo, String adId, String date) {

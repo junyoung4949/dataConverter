@@ -184,4 +184,38 @@ public class HttpRequestExecutor {
         // 뒤에 어떤 예외처리를 해야함
         return null;
     }
+
+    public void sendForDeleteStatReportsWithRetry(HttpRequest request) {
+        int attempt = 0;
+        int statusCode = 0;
+        String uri = request.uri().toString();
+
+        while (attempt < MAX_ATTEMPT) {
+            try {
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                statusCode = response.statusCode();
+
+                if (200 <= statusCode && statusCode < 300) {
+                    return;
+                } else {
+                    log.warn("{} 요청 실패 : 상태코드: {}, (재시도 {}/{})", uri, statusCode, attempt + 1, MAX_ATTEMPT);
+                }
+            } catch (IOException e) {
+                log.warn("{} 요청시도중 입출력 예외 발생 : (재시도 {}/{})", uri, attempt + 1, MAX_ATTEMPT);
+            } catch (InterruptedException e) {
+                log.warn("{} 요청시도중 인터럽트 예외 발생 : (재시도 {}/{})", uri, attempt + 1, MAX_ATTEMPT);
+            }
+
+            attempt++;
+
+            // 요청 재시도 할때, delay를 얼마나 잡을지
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        exceptionResolver.resolve("최대 요청 개수 초과함", new RuntimeException(uri + " 요청 실패, statusCode : " + statusCode));
+    }
 }

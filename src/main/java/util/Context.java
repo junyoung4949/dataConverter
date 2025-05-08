@@ -3,6 +3,7 @@ package util;
 import api.HttpRequestExecutor;
 import api.HttpRequestGenerator;
 import api.SignaturesGenerator;
+import client.worker.ExcelGenerateWorkerExecutor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import repository.*;
 import service.ExcelDataService;
@@ -30,6 +31,8 @@ public class Context {
     private final PasswordProtectedExcelHandler passwordProtectedExcelHandler;
     private final RawDataSheetModifier rawDataSheetModifier;
 
+    private final ExcelGenerateWorkerExecutor excelGenerateWorkerExecutor;
+
     public Context() {
         this.messageDisplayer = new MessageDisplayer();
         this.exceptionResolver = new ExceptionResolver(this.messageDisplayer);
@@ -41,13 +44,15 @@ public class Context {
         this.componentManager = new ComponentManager();
         this.apiInfoRepository = new DBApiInfoRepository();
 
+        this.excelGenerateWorkerExecutor = new ExcelGenerateWorkerExecutor();
         this.signaturesGenerator = new SignaturesGenerator(this.exceptionResolver);
         this.httpRequestGenerator = new HttpRequestGenerator(this.signaturesGenerator, this.exceptionResolver);
         this.httpRequestExecutor = new HttpRequestExecutor(new ObjectMapper(), this.exceptionResolver);
-        this.excelDataService = new ExcelDataService(this.httpRequestGenerator, this.httpRequestExecutor, this.exceptionResolver);
-        this.excelEditService = new ExcelEditService(this.excelRepository, this.exceptionResolver, this.passwordProtectedExcelHandler, this.rawDataSheetModifier);
+        this.excelDataService = new ExcelDataService(this.httpRequestGenerator, this.httpRequestExecutor, this.exceptionResolver, excelGenerateWorkerExecutor);
+        this.excelEditService = new ExcelEditService(this.excelRepository, this.exceptionResolver, this.passwordProtectedExcelHandler, this.rawDataSheetModifier, excelGenerateWorkerExecutor);
         this.reloader = new Reloader(this.componentManager);
 
+        excelGenerateWorkerExecutor.initialize(this.excelDataService, this.excelEditService);
     }
 
     public ComponentManager componentManager() {
@@ -72,5 +77,9 @@ public class Context {
 
     public ExcelEditService excelEditService() {
         return this.excelEditService;
+    }
+
+    public ExcelGenerateWorkerExecutor excelGenerateWorkerExecutor() {
+        return this.excelGenerateWorkerExecutor;
     }
 }

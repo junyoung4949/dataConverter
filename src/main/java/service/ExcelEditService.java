@@ -1,5 +1,6 @@
 package service;
 
+import client.worker.ExcelGenerateWorkerExecutor;
 import dto.ExcelColumnDto;
 import entity.Excel;
 import repository.ExcelRepository;
@@ -19,12 +20,14 @@ public class ExcelEditService {
 
     private final PasswordProtectedExcelHandler passwordProtectedExcelHandler;
     private final RawDataSheetModifier rawDataSheetModifier;
+    private final ExcelGenerateWorkerExecutor excelGenerateWorkerExecutor;
 
-    public ExcelEditService(ExcelRepository excelRepository, ExceptionResolver exceptionResolver, PasswordProtectedExcelHandler passwordProtectedExcelHandler, RawDataSheetModifier rawDataSheetModifier) {
+    public ExcelEditService(ExcelRepository excelRepository, ExceptionResolver exceptionResolver, PasswordProtectedExcelHandler passwordProtectedExcelHandler, RawDataSheetModifier rawDataSheetModifier, ExcelGenerateWorkerExecutor excelGenerateWorkerExecutor) {
         this.excelRepository = excelRepository;
         this.exceptionResolver = exceptionResolver;
         this.passwordProtectedExcelHandler = passwordProtectedExcelHandler;
         this.rawDataSheetModifier = rawDataSheetModifier;
+        this.excelGenerateWorkerExecutor = excelGenerateWorkerExecutor;
     }
 
     public void editAndSave(Map<String, List<ExcelColumnDto>> resultMap, File saveDirectory) {
@@ -33,6 +36,7 @@ public class ExcelEditService {
 
         for (Map.Entry<String, List<ExcelColumnDto>> entry : resultMap.entrySet()) {
             rawDataSheetModifier.modifyAndEncryptRawDataSheet(tempFile, saveDirectory.getPath() + "/" + entry.getKey() + ".xlsx", excel.getPassword(), entry.getValue());
+            excelGenerateWorkerExecutor.updateProgress();
         }
         try {
             Files.deleteIfExists(tempFile.toPath());
