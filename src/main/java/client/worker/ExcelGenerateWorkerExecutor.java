@@ -6,6 +6,8 @@ import service.ExcelEditService;
 
 import javax.swing.*;
 import java.io.File;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -15,7 +17,7 @@ public class ExcelGenerateWorkerExecutor {
     private ExcelEditService excelEditService;
 
     private ExcelGenerateWorker worker;
-    private Integer maxProgress;
+    private Integer maxProgress = 0;
     private Integer currentProgress = 0;
 
     public void initialize(ExcelDataService excelDataService, ExcelEditService excelEditService) {
@@ -46,7 +48,19 @@ public class ExcelGenerateWorkerExecutor {
                 progressBar.setValue(progress);
             }
         });
-        this.maxProgress = selectedItems.size() * 2;
+
+        String[] dateArray = dateRange.split("~");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        if (dateArray.length == 1) {
+            this.maxProgress = selectedItems.size() * 2;
+        } else {
+            LocalDate startDate = LocalDate.parse(dateArray[0], formatter);
+            LocalDate endDate = LocalDate.parse(dateArray[1], formatter);
+            for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+                maxProgress += selectedItems.size();
+            }
+            maxProgress += selectedItems.size();
+        }
         this.worker.execute();
     }
 

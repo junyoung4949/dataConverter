@@ -61,7 +61,6 @@ public class HttpRequestExecutor {
         }
 
         exceptionResolver.resolve("최대 요청 개수 초과함", new RuntimeException(uri + " 요청 실패, statusCode : " + statusCode));
-        // 뒤에 어떤 예외처리를 해야함
         return null;
     }
 
@@ -79,6 +78,8 @@ public class HttpRequestExecutor {
                     StatReportGetDto statReportPostDto = objectMapper.readValue(body, StatReportGetDto.class);
                     if (statReportPostDto.getStatus().equals("BUILT")) {
                         return statReportPostDto;
+                    } else if (statReportPostDto.getStatus().equals("NONE")) {
+                        break;
                     } else {
                         log.warn("{} 요청 재시도 ( 레포트가 완성되지 않음 ) , status : {}", uri, statReportPostDto.getStatus());
                     }
@@ -101,9 +102,11 @@ public class HttpRequestExecutor {
             }
         }
 
-        exceptionResolver.resolve("최대 요청 개수 초과함", new RuntimeException(uri + " 요청 실패, statusCode : " + statusCode));
-
-        // 뒤에 어떤 예외처리를 해야함
+        if (attempt == MAX_ATTEMPT) {
+            exceptionResolver.resolve("최대 요청 개수 초과함", new RuntimeException(uri + " 요청 실패, statusCode : " + statusCode));
+        } else {
+            exceptionResolver.resolve("레포트 생성 불가", new RuntimeException(uri + " 요청 실패, statusCode : " + statusCode));
+        }
         return null;
     }
 
@@ -139,8 +142,6 @@ public class HttpRequestExecutor {
         }
 
         exceptionResolver.resolve("최대 요청 개수 초과함", new RuntimeException(uri + " 요청 실패, statusCode : " + statusCode));
-
-        // 뒤에 어떤 예외처리를 해야함
         return null;
     }
 
@@ -181,7 +182,6 @@ public class HttpRequestExecutor {
         }
 
         exceptionResolver.resolve("최대 요청 개수 초과함", new RuntimeException(uri + " 요청 실패, statusCode : " + statusCode));
-        // 뒤에 어떤 예외처리를 해야함
         return null;
     }
 
@@ -196,6 +196,7 @@ public class HttpRequestExecutor {
                 statusCode = response.statusCode();
 
                 if (200 <= statusCode && statusCode < 300) {
+                    log.info("{} 삭제 요청 성공,", uri);
                     return;
                 } else {
                     log.warn("{} 요청 실패 : 상태코드: {}, (재시도 {}/{})", uri, statusCode, attempt + 1, MAX_ATTEMPT);

@@ -106,25 +106,25 @@ public class HttpRequestGenerator {
         return null;
     }
 
-//    public HttpRequest getDeleteStatReportsRequest(Long reportJobId, ApiInfo apiInfo) {
-//        try {
-//            long timeStamp = System.currentTimeMillis();
-//            String timeStampString = String.valueOf(timeStamp);
-//            String signature = signaturesGenerator.generateSignature(timeStampString, "DELETE", "/stat-reports/" + reportJobId, apiInfo.getSecretKey());
-//            return HttpRequest.newBuilder()
-//                    .uri(new URI(BASE_URL + "/stat-reports/" + reportJobId))
-//                    .DELETE()
-//                    .header("Content-Type", "application/json")
-//                    .header("X-Timestamp", timeStampString)
-//                    .header("X-Signature", signature)
-//                    .header("X-Customer", String.valueOf(apiInfo.getCustomerId()))
-//                    .header("X-API-KEY", apiInfo.getAccessLicense())
-//                    .build();
-//        } catch (URISyntaxException e) {
-//            exceptionResolver.resolve("url syntax exception", e);
-//        }
-//        return null;
-//    }
+    public HttpRequest genDeleteStatReportsRequest(Long reportJobId, ApiInfo apiInfo) {
+        try {
+            long timeStamp = System.currentTimeMillis();
+            String timeStampString = String.valueOf(timeStamp);
+            String signature = signaturesGenerator.generateSignature(timeStampString, "DELETE", "/stat-reports/" + reportJobId, apiInfo.getSecretKey());
+            return HttpRequest.newBuilder()
+                    .uri(new URI(BASE_URL + "/stat-reports/" + reportJobId))
+                    .DELETE()
+                    .header("Content-Type", "application/json")
+                    .header("X-Timestamp", timeStampString)
+                    .header("X-Signature", signature)
+                    .header("X-Customer", String.valueOf(apiInfo.getCustomerId()))
+                    .header("X-API-KEY", apiInfo.getAccessLicense())
+                    .build();
+        } catch (URISyntaxException e) {
+            exceptionResolver.resolve("url syntax exception", e);
+        }
+        return null;
+    }
 
     private String getParameter(Map<String, String> paramMap) {
         StringBuilder parameter = new StringBuilder("?");

@@ -3,6 +3,7 @@ package service;
 import client.worker.ExcelGenerateWorkerExecutor;
 import dto.ExcelColumnDto;
 import entity.Excel;
+import lombok.extern.slf4j.Slf4j;
 import repository.ExcelRepository;
 import util.ExceptionResolver;
 import util.excel.PasswordProtectedExcelHandler;
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class ExcelEditService {
 
     private final ExcelRepository excelRepository;
@@ -36,6 +38,7 @@ public class ExcelEditService {
 
         for (Map.Entry<String, List<ExcelColumnDto>> entry : resultMap.entrySet()) {
             rawDataSheetModifier.modifyAndEncryptRawDataSheet(tempFile, saveDirectory.getPath() + "/" + entry.getKey() + ".xlsx", excel.getPassword(), entry.getValue());
+            log.info("{} 의 value.size(): {}", entry.getKey(), entry.getValue().size());
             excelGenerateWorkerExecutor.updateProgress();
         }
         try {

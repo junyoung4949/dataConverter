@@ -72,9 +72,9 @@ public class ExcelDataService {
                             excelColumnDtoList.add(dto);
                         }
                     }
+                    excelGenerateWorkerExecutor.updateProgress();
                 }
                 resultMap.put(makeFileName(apiInfo), excelColumnDtoList);
-                excelGenerateWorkerExecutor.updateProgress();
             }, executor);
             futures.add(future);
         }
@@ -138,8 +138,8 @@ public class ExcelDataService {
     }
 
     private void deleteStatReport(Long reportJobId, ApiInfo apiInfo) {
-//        HttpRequest request = httpRequestGenerator.getDeleteStatReportsRequest(reportJobId, apiInfo);
-//        httpRequestExecutor.sendForDeleteStatReportsWithRetry(request);
+        HttpRequest request = httpRequestGenerator.genDeleteStatReportsRequest(reportJobId, apiInfo);
+        httpRequestExecutor.sendForDeleteStatReportsWithRetry(request);
     }
 
     private ExcelColumnDto getExcelColumn(ApiInfo apiInfo, String adId, String date) {
